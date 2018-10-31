@@ -1,0 +1,40 @@
+[
+  {
+    "id":"",
+    "name": "",
+    "nickname":[],
+    "stars":"",
+    "class":"",
+    "skills":[
+      {
+        "old":{
+          "name":"",
+          "img":"",
+          "cd":"",
+          "power":""
+        }
+      }
+    ],
+    "passivity":[
+      {
+        "name":"",
+        "img":"",
+        "power":""
+      }
+    ],
+    "card":{
+      "art":{"hit":"","number":""},
+      "quick":{"hit":"","number":""},
+      "buster":{"hit":"","number":""}
+    },
+    "noble":{
+      "old":[{"effect":"","value":[]}]
+    },
+    "Atk":[],
+    "Hp":[],
+    "story":[],
+    "myRoom":[{"type":"","voice":[]}],
+    "gift":"",
+    "valentines":[{"year":"","id":""}]
+  }
+]
