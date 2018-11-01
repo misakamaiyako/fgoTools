@@ -1,3 +1,4 @@
 node_modules
 data/img/suit/*.jpg
 data/img/servant/*.jpg
+.idea
