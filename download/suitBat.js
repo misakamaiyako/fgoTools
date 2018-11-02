@@ -39,5 +39,5 @@ function downLoadSuit(){
     });
     return downList;
 }
-module.exports = downLoadSuit();
+module.exports = downLoadSuit;
 
