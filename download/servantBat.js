@@ -3,8 +3,9 @@ const fs = require('fs'),
     https = require('https');
 const simplifyURL = require('../src/mixin.js').simplifyURL;
 let base = new Promise(resolve=>{
-    https.get('https://fgo.wiki/w/%E8%8B%B1%E7%81%B5%E5%9B%BE%E9%89%B4',function(res){
+    https.get('https://fgo.wiki/w/英灵图鉴',function(res){
         let chunk = '';
+        console.log(res.statusCode);
         res.on('data',_=>{
             chunk+=_;
         });
@@ -24,22 +25,26 @@ let base = new Promise(resolve=>{
         })
     });
 });
-const imgArrow = ["avatar","card1","card2","card3","card4","card5","np_card","np_type","class_icon"];
+const imgArrow = ["avatar","card1","card2","card3","card4","card5","np_card","class_icon"];
 let imgSet = new Set();
 base.then(data=>{
     data.forEach(t=>{
         imgArrow.forEach(d=>{
-            imgSet.add(t[d]);
+            imgSet.add(encodeURI(t[d]));
             t[d] = simplifyURL('./data/img/tableImg/',t[d]);
         })
     });
     let writerStream = fs.createWriteStream(path.resolve(__dirname,'../data/database/servant.json'),{flags:'r+'});
-    writerStream.pipe(new Buffer(JSON.stringify(data,null,2),'UTF-8'));
+    writerStream.write(Buffer.from(JSON.stringify(data,null,2)),"UTF-8");
     imgSet.forEach(value=>{
-        https.get(`https://fgo.wiki${value}`, function(response) {
+        https.get('https://fgo.wiki'+value , function(response) {
             if (response.statusCode === 200) {
-                let file = fs.createWriteStream(path.resolve(__dirname,'../data/img/tableImg/'+simplifyURL('',value)));
-                response.pipe(file);
+                if(simplifyURL('',decodeURI(value)).length>0){
+                    let file = fs.createWriteStream(path.resolve(__dirname,'../data/img/tableImg/'+simplifyURL('',decodeURI(value))));
+                    response.pipe(file);
+                } else {
+                    console.log('noNameFile:%s',value)
+                }
             }
         });
     })

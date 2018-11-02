@@ -1,22 +1,19 @@
 {
-  "name": "electron-quick-start",
+  "name": "fgo-tool",
   "version": "1.0.0",
-  "description": "A minimal Electron application",
+  "description": "one app include all about fgo",
   "main": "main.js",
   "scripts": {
     "start": "electron ."
   },
-  "repository": "https://github.com/electron/electron-quick-start",
-  "keywords": [
-    "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo"
-  ],
-  "author": "GitHub",
+  "repository": "https://github.com/misakamaiyako/fgoTools",
+  "keywords": ["Electron","FG/O","FGO","fate"],
+  "author": "misaka",
   "license": "MIT",
   "devDependencies": {
     "electron": "^3.0.4"
+  },
+  "dependencies": {
+    "json-sql-tool": "^1.1.0"
   }
 }
