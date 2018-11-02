@@ -2,22 +2,25 @@
 
 **this application will include many info of FGO**
 
-#plan
+# plan
 
--[ ] servant info
--[ ] suit info
--[ ] event info
--[ ] capsule info
+- [ ] servant info
 
-#download
+- [ ] suit info
+
+- [ ] event info
+
+- [ ] capsule info
+
+# download
 
 [download](#download)
 
-#join me
+# join me
 
 if you wanna work together,please email me at misakamayaco@qq.com
 
-#thanks
+# thanks
 
 [mooncell](https://fgo.wiki/w/)
 
