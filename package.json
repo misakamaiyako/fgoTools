@@ -7,13 +7,19 @@
     "start": "electron ."
   },
   "repository": "https://github.com/misakamaiyako/fgoTools",
-  "keywords": ["Electron","FG/O","FGO","fate"],
+  "keywords": [
+    "Electron",
+    "FG/O",
+    "FGO",
+    "fate"
+  ],
   "author": "misaka",
   "license": "MIT",
   "devDependencies": {
     "electron": "^3.0.4"
   },
   "dependencies": {
-    "json-sql-tool": "^1.1.0"
+    "json-sql-tool": "^1.1.0",
+    "pdfkit": "^0.8.3"
   }
 }
