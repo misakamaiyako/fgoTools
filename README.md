@@ -12,6 +12,10 @@
 
 - [ ] capsule info
 
+- [ ] 倍卡从者
+
+- [ ] 语音关系图
+
 # download
 
 [download](#download)
