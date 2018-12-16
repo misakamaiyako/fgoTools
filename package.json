@@ -19,6 +19,7 @@
     "electron": "^3.0.4"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "json-sql-tool": "^1.1.0",
     "pdfkit": "^0.8.3"
   }

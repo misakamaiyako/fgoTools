@@ -1,53 +1,81 @@
 let https = require('https'),
     path = require('path'),
-    fs = require('fs');
-https.get('https://fgo.wiki/w/茨木童子(Lancer)',(res)=>{
-    let chunk = '';
-    res.on('data',_=>{
-        chunk+=_;
-    });
-    res.on('end',()=>{
-        let original = chunk.toString();
-        let headers = original.match(/<th(.|\n)+?th>/g);
-        let values = original.match(/<td(.|\n)+?td>/g);
-        let results = [],results2=[];
-        for(;headers.length>0&&values.length>0;){
-            let headerValue = headers.shift();
-            const hTemp = headerValue.replace(/<br\s*\/>/,'\n').replace(/<.+?>/g,'').trim();
-            if(hTemp.length>0){
-                results.push(hTemp);
-            }
-            let valueTemp = values.shift();
-            let vTemp = '';
-            if(/Quick.png/.test(valueTemp)){
-                let q = valueTemp.match(/alt="Quick.png"/g).length;
-                let b = valueTemp.match(/alt="Buster.png"/g).length;
-                let a = valueTemp.match(/alt="Arts.png"/g).length;
-                vTemp='Quick,'.repeat(q)+'Buster,'.repeat(b)+'Arts,'.repeat(a);
-                vTemp = vTemp.split(',');
-                vTemp.length=5;
-            } else if(/数值/.test(headerValue)){
-                vTemp = [{name:'title',values:[]},{name:'ATK',values:[]},{name:'有效ATK',values:[]},{name:'HP',values:[]}];
-                vTemp[0] = headers.splice(0,5);
-                vTemp[1] = values.splice(0,5);
-                vTemp[2] = values.splice(0,5);
-                vTemp[3] = values.splice(0,5);
-            }else if(/NP获得率/.test(headerValue)){
-                vTemp = [{name:'title',values:[]},{name:'NP',values:[]}];
-                vTemp[0] = headers.splice(0,6);
-                vTemp[1] = values.splice(0,6);
-            } else {
-                vTemp = valueTemp.replace(/<br\s*\/>/,'\n').replace(/<.+?>/g,'').trim();
-            }
-            if(vTemp.length>0){
-                results2.push(vTemp);
-            }
+    fs = require('fs'),
+    axios = require('axios');
+axios({
+    url:'https://fgo.wiki/index.php?title=%E8%8C%A8%E6%9C%A8%E7%AB%A5%E5%AD%90(Lancer)&action=edit'
+}).then(({data})=>{
+    let original = data.toString();
+    const values = original.match(/<textarea readonly="" accesskey="," id="wpTextbox1" cols="80" rows="25" style="" class="mw-editfont-monospace" lang="zh-CN" dir="ltr" name="wpTextbox1">(.|\n)+<\/textarea>/);
+    if(values[0]){
+        let info = {base:{},noble:{}};
+        /**
+         * 基础属性
+         */
+        {
+            const base = values[0].match(/{{基础数值(.|\n)+?\|立绘tabber=/)[0].match(/\|.+?\n/g);
+            base.forEach(t=>{
+                let key = t.match(/\|.+?=/)[0].replace(/([|=])/g,'');
+                const value = t.split('=')[1].trim();
+                if(key.indexOf('张卡')>-1){
+                    key = '卡'
+                } else if (key.indexOf('特性')>-1){
+                    key = '特性'
+                } else if (key.indexOf('属性')>-1){
+                    key = '属性'
+                }
+                if(info.base[key]){
+                    if(!Array.isArray(info.base[key])){
+                        info.base[key] = [info.base[key]];
+                    }
+                    info.base[key].push(value)
+                } else {
+                    info.base[key] = value
+                }
+            });
         }
-        let temp = [];
-        for(let i = 0;i<results.length&&i<results2.length;i++){
-            temp.push([results[i],results2[i]]);
+        /**
+         * 宝具
+         */
+        {
+            let noble = values[0].match(/==宝具==(.|\n)+?==技能==/)[0].split('\n');
+            noble.pop();
+            noble.pop();
+            noble.shift();
+            noble.shift();
+            let nobleBase = noble.shift().split(/\|/);
+            nobleBase.shift();
+            [info.noble.type,info.noble.color,info.noble.rank,info.noble.atkType,info.noble.JP,info.noble.IT,info.noble.CN] = nobleBase;
+            info.noble.type = nobleBase[0].split(/=/).pop();
+            info.noble.effect = [];
+            noble.forEach(t=>{
+                let a = t.split('|');
+                a.shift();
+                let i ={type:a.shift(),effect:[]};
+                if(a[2]===a[3]){
+                    i.effect = [a[0]]
+                } else {
+                    i.effect = a;
+                }
+                info.noble.effect.push(i)
+            });
         }
-        let writerStream = fs.createWriteStream(path.resolve(__dirname,'../data/database/test.json'),{flags:'w'});
-        writerStream.write(JSON.stringify(temp,null,4),"UTF-8");
-    })
+        console.log(JSON.stringify(info,null,4));
+
+    }
 });
+// https.get('https://fgo.wiki/index.php?title=茨木童子(Lancer)&action=edit',(res)=>{
+//     let chunk = '';
+//     res.on('data',_=>{
+//         chunk+=_;
+//     });
+//     res.on('end',()=>{
+//         let original = chunk.toString();
+//         const values = original.match(/<textarea readonly="" accesskey="," id="wpTextbox1" cols="80" rows="25" style="" class="mw-editfont-monospace" lang="zh-CN" dir="ltr" name="wpTextbox1">(.|\n)+<\/textarea>/);
+//         if(values[0]){
+//
+//         }
+//         let writerStream = fs.createWriteStream(path.resolve(__dirname,'../data/database/test.json'),{flags:'w'});
+//         writerStream.write(JSON.stringify(temp,null,4),"UTF-8");
+//     })
+// });
