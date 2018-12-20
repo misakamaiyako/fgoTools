@@ -3,17 +3,60 @@ let https = require('https'),
     fs = require('fs'),
     axios = require('axios');
 axios({
-    url:'https://fgo.wiki/index.php?title=%E8%8C%A8%E6%9C%A8%E7%AB%A5%E5%AD%90(Lancer)&action=edit'
+    url:`https://fgo.wiki/index.php?title=${encodeURI('恩奇都')}&action=edit`
 }).then(({data})=>{
     let original = data.toString();
-    const values = original.match(/<textarea readonly="" accesskey="," id="wpTextbox1" cols="80" rows="25" style="" class="mw-editfont-monospace" lang="zh-CN" dir="ltr" name="wpTextbox1">(.|\n)+<\/textarea>/);
+    let values = original.match(/<textarea readonly="" accesskey="," id="wpTextbox1" cols="80" rows="25" style="" class="mw-editfont-monospace" lang="zh-CN" dir="ltr" name="wpTextbox1">(.|\n)+<\/textarea>/);
     if(values[0]){
-        let info = {base:{},noble:{}};
+        values = values[0].replace(/&lt;/g,'<');
+        let info = {base:{},noble:{},skill:{}};
+        function split(value) {
+            let a =value.match(/{{(.|\n)+?}}/)[0].replace(/({{|}})/g,'').split(/\n/).map(t=>{
+                return t.split(/\|/)
+            });
+            let result = {base:{},effect:[]};
+            if(a[0][0]==='宝具'){
+                result.base = {
+                    type:a[0][1],
+                    color:a[0][2],
+                    rank:a[0][3],
+                    effectType:a[0][4],
+                    JP:a[0][5],
+                    EN:a[0][6],
+                    CN:a[0][7]
+                }
+            } else if (a[0][0]==='持有技能'){
+                result.base = {
+                    icon:a[0][1],
+                    name:a[0][2],
+                    coolDown:a[0][3]
+                }
+            } else {
+                console.log(a[0][0])
+            }
+            a.shift();
+            a.forEach(t=>{
+                t.shift();
+                let name = t.shift();
+                if(t[3]==t[2]){
+                    result.effect.push({
+                        name,
+                        effect:a[0]
+                    })
+                } else {
+                    result.effect.push({
+                        name,
+                        effect:t
+                    })
+                }
+            });
+            return result;
+        }
         /**
          * 基础属性
          */
         {
-            const base = values[0].match(/{{基础数值(.|\n)+?\|立绘tabber=/)[0].match(/\|.+?\n/g);
+            const base = values.match(/{{基础数值(.|\n)+?\|立绘tabber=/)[0].match(/\|.+?\n/g);
             base.forEach(t=>{
                 let key = t.match(/\|.+?=/)[0].replace(/([|=])/g,'');
                 const value = t.split('=')[1].trim();
@@ -38,44 +81,26 @@ axios({
          * 宝具
          */
         {
-            let noble = values[0].match(/==宝具==(.|\n)+?==技能==/)[0].split('\n');
-            noble.pop();
-            noble.pop();
-            noble.shift();
-            noble.shift();
-            let nobleBase = noble.shift().split(/\|/);
-            nobleBase.shift();
-            [info.noble.type,info.noble.color,info.noble.rank,info.noble.atkType,info.noble.JP,info.noble.IT,info.noble.CN] = nobleBase;
-            info.noble.type = nobleBase[0].split(/=/).pop();
-            info.noble.effect = [];
-            noble.forEach(t=>{
-                let a = t.split('|');
-                a.shift();
-                let i ={type:a.shift(),effect:[]};
-                if(a[2]===a[3]){
-                    i.effect = [a[0]]
-                } else {
-                    i.effect = a;
+            let noble = values.match(/==宝具==(.|\n)+?==技能==/)[0];
+            if(/强化后=/.test(noble)){
+                let before = noble.match(/强化前=(.|\n)+?(\|-\||<\/tabber>)/)[0];
+                let after = noble.match(/强化后=(.|\n)+?(\|\-\||<\/tabber>)/)[0];
+                info.noble = {
+                    before:split(before),
+                    after:split(after)
                 }
-                info.noble.effect.push(i)
-            });
+            }
         }
-        console.log(JSON.stringify(info,null,4));
+        /**
+         * 技能
+         */
+        {
+            // let skill = values.match(/===持有技能===(.|\n)+?职介技能==/)[0].replace('===持有技能===','').replace('===职阶技能===','');
+            let skill1 = values.match(/'''技能1.+'''(.|\n)+?'''技能2.+'''/)[0].replace(/'''技能1.+'''\n/,'').replace(/\n'''技能2.+'''/,'');
+            if(/强化任务/.test(skill1)){
 
+            }
+        }
+        // console.log(JSON.stringify(info,null,4));
     }
 });
-// https.get('https://fgo.wiki/index.php?title=茨木童子(Lancer)&action=edit',(res)=>{
-//     let chunk = '';
-//     res.on('data',_=>{
-//         chunk+=_;
-//     });
-//     res.on('end',()=>{
-//         let original = chunk.toString();
-//         const values = original.match(/<textarea readonly="" accesskey="," id="wpTextbox1" cols="80" rows="25" style="" class="mw-editfont-monospace" lang="zh-CN" dir="ltr" name="wpTextbox1">(.|\n)+<\/textarea>/);
-//         if(values[0]){
-//
-//         }
-//         let writerStream = fs.createWriteStream(path.resolve(__dirname,'../data/database/test.json'),{flags:'w'});
-//         writerStream.write(JSON.stringify(temp,null,4),"UTF-8");
-//     })
-// });
