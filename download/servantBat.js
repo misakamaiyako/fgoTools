@@ -1,33 +1,23 @@
 const fs = require('fs'),
     path = require('path'),
-    https = require('https');
+    axios = require('axios');
 const simplifyURL = require('../src/mixin.js').simplifyURL;
 function downloadBase(){
-    let base = new Promise(resolve=>{
-        https.get('https://fgo.wiki/w/英灵图鉴',function(res){
-            let chunk = '';
-            res.on('data',_=>{
-                chunk+=_;
-            });
-            res.on('end',()=>{
-                let original = chunk.toString().match(/id,.+,\d+/)[0];
-                let raw_data = original.split("\\n");
-                let data = new Array(raw_data.length - 1);
-                let titles = raw_data[0].split(',');
-                for (let i = 0; i < raw_data.length - 1; i++){
-                    data[i] = {};
-                    let data_i = raw_data[i + 1].split(',');
-                    for(let j = 0; j < titles.length; j++){
-                        data[i][titles[j]] = data_i[j];
-                    }
-                }
-                resolve(data)
-            })
-        });
-    });
-    base.then(data=>{
-        downloadImg(data);
-        downloadDetail(data);
+    axios.get('https://fgo.wiki/w/'+encodeURI('英灵图鉴')).then(({data})=>{
+        let raw_data = data.match(/id,.+,\d+/)[0].split("\\n");
+        data = new Array(raw_data.length - 1);
+        let titles = raw_data[0].split(',');
+        for (let i = 0; i < raw_data.length - 1; i++){
+            data[i] = {};
+            let data_i = raw_data[i + 1].split(',');
+            for(let j = 0; j < titles.length; j++){
+                data[i][titles[j]] = data_i[j];
+            }
+        }
+        let errorWriterStream = fs.createWriteStream(path.resolve(__dirname,`../data/database/servant.json`),{flags :'w'});
+        errorWriterStream .write(JSON.stringify(data,null,2),'UTF8');
+        errorWriterStream .end();
+        // downloadImg(data);
     })
 }
 function downloadImg(data){
@@ -53,30 +43,6 @@ function downloadImg(data){
             }
         });
     })
-}
-function downloadDetail(data){
-    // for(let i = 1;i<=data.length;i++){
-    //     https.get(`https://fgowiki.com/guide/petdetail/${i}`,res => {
-    //         if(res.statusCode===200){
-    //             let chunk = '';
-    //             res.on('data',_=>{
-    //                 chunk+=_;
-    //             });
-    //             res.on('end',()=>{
-    //                 let detail = chunk.toString().match(/\[{"\u0049D(.|\n)+}]/)[0];
-    //                 let myRoom = chunk.toString().match(/\[\{"\u0049D(.|\n)+}]/)[1];
-    //                 let writerStream = fs.createWriteStream(path.resolve(__dirname,`../data/database/servantDetail/${i}.json`),{flags :'w'});
-    //                 writerStream.write(JSON.stringify(detail,null,2),'UTF8');
-    //                 writerStream.end();
-    //                 let writerStream2 = fs.createWriteStream(path.resolve(__dirname,`../data/database/servantDetail/${i}-myRoom.json`),{flags :'w'});
-    //                 writerStream2.write(JSON.stringify(myRoom,null,2),'UTF8');
-    //                 writerStream2.end();
-    //             })
-    //         } else {
-    //             console.log('error',i)
-    //         }
-    //     })
-    // }
 }
 module.exports = downloadBase;
 downloadBase();
