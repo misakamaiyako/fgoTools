@@ -3,7 +3,7 @@ let path = require('path'),
     axios = require('axios'),
     qp = require('../data/database/qp'),
     i=0;
-fs.readFile('./data/database/servant.json',(err,data)=>{
+fs.readFile('../data/database/servant.json',(err,data)=>{
     let list = JSON.parse(data);
     function getDetail(name,id){
         axios({
@@ -222,6 +222,11 @@ fs.readFile('./data/database/servant.json',(err,data)=>{
                 try{
                     let stories = values.match(/(?<={{羁绊故事)(.|\n)+?(?=}})/)[0].split(/\n\|\n/);
                     stories.shift();
+                    const length = stories.length;
+                    if(length===6){
+                        stories.push(1);
+                        stories.push(1);
+                    }
                     if(stories.length===8){
                         stories.push('角色详情');
                         stories.push('解锁条件：羁绊达到Lv.1后开放');
@@ -254,10 +259,12 @@ fs.readFile('./data/database/servant.json',(err,data)=>{
                         case:stories[8],
                         story:stories.shift().trim()
                     });
-                    info.stories.push({
-                        story:stories.shift().trim(),
-                        case:stories.shift().trim()
-                    });
+                    if(length!==6){
+                        info.stories.push({
+                            story:stories.shift().trim(),
+                            case:stories.shift().trim()
+                        });
+                    }
                 }catch (e) {
                     console.log(name,'羁绊故事')
                 }
@@ -267,8 +274,11 @@ fs.readFile('./data/database/servant.json',(err,data)=>{
                 try{
                     let bondage  = values.match(/(?<={羁绊点数)(.|\n)+?(?=}})/)[0].split(/\|/);
                     bondage.shift();
+                    bondage.pop();
+                    for (let i = 0; i < bondage.length; i++) {
+                        bondage.push(Number(bondage.shift()))
+                    }
                     info.bondage = bondage.concat([1090000,1230000,1360000,1500000,1640000])
-
                 }catch (e) {
                     console.log(name,'羁绊值')
                 }
